@@ -348,10 +348,7 @@ class ToolController extends Controller
         echo json_encode(array('status'=>true,'msg'=>'http://sitemap.feediy.com/'.$dm.'_'.$time.'.xml'));
     }
 
-    public function actionWp()
-    {
-        
-    }
+    
 
     public function actionTest()
 	{
@@ -369,9 +366,7 @@ class ToolController extends Controller
 //        pr($r);
 //        $url='.sdfs.Html';
 //        pr($this->get_suffix($url));
-        $src='http://www.360doc.com/showWeb/0/0/1002.aspx';
-        $o = Tools::OZCurl($src, 10, false);
-        pd($o);
+        
 	}
 	
 
