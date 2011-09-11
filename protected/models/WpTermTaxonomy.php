@@ -38,7 +38,7 @@ class WpTermTaxonomy extends CActiveRecord
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-			array('description', 'required'),
+//			array('description', 'required'),
 			array('term_id, parent, count', 'length', 'max'=>20),
 			array('taxonomy', 'length', 'max'=>32),
 			// The following rule is used by search().

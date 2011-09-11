@@ -103,9 +103,20 @@ class ApiController extends Controller
     <meta content="', '" name=keywords>'));
         $this->_ar['description']=trim(Tools::cutContent($this->html['Result'], 'name=keywords>
     <meta content="', '" name=description>'));
-        $this->_ar['author']=trim(strip_tags(Tools::cutContent($this->html['Result'], '<span class="mz" style="font-weight: bold;">', '</span>')));
-        $this->_ar['body']=Tools::cutContent($this->html['Result'], '<span id="articlecontent" onmouseup="NewHighlight(event)" style="width: 740px">', '                    </span>');
-        $this->_ar['category']=strip_tags(Tools::cutContent($this->html['Result'], 'class="bulebold bulelink">[', ']</span>'));
+        $this->_ar['author']=trim(
+            strip_tags(
+                Tools::cutContent($this->html['Result'],
+                '<span class="mz" style="font-weight: bold;">', '</span>')
+            )
+        );
+        $this->_ar['body']=Tools::cutContent(
+            $this->html['Result'],
+            '<span id="articlecontent" onmouseup="NewHighlight(event)" style="width: 740px">',
+            '                    </span>'
+        );
+        $this->_ar['category']=strip_tags(
+            Tools::cutContent($this->html['Result'], 'class="bulebold bulelink">[', ']</span>')
+        );
         $this->_ar['src']=$this->src;
 
         return $this->_ar;
@@ -146,7 +157,7 @@ class ApiController extends Controller
             $post->post_status='publish';
             $post->comment_status='open';
             $post->ping_status='open';
-            $post->post_name=urlencode($ar['title']);
+            $post->post_name=str_replace(array('-', '+'), '_',urlencode( $ar['title']));
             $post->to_ping='';
             $post->pinged='';
             $post->post_modified=$date;
@@ -169,24 +180,38 @@ class ApiController extends Controller
 
         if(isset($ar['author']) && !empty($ar['author'])){  //保存作者信息
             $user_name=strip_tags($ar['author']);
+            $nicename=Tools::Pinyin($user_name, 1);
             $users=WpUsers::model()->find('user_login=:user_name', array(':user_name'=>$user_name));
+
             if(empty($users)){
                 $users=new WpUsers();
                 $users->user_login=$user_name;
                 $users->user_pass=time();
-                $users->user_nicename=$user_name;
-                $users->user_email=Tools::Pinyin($user_name, 1).'@'.$wpuri['host'];
-                $users->user_url=YII::app()->request->hostInfo.'/members/'.$user_name.'/';
+                $users->user_nicename=$nicename;
+                $users->user_email=$nicename.'@'.$wpuri['host'];
+                $users->user_url=YII::app()->request->hostInfo.'/members/'.$nicename.'/';
                 $users->user_registered=time();
                 $users->user_activation_key='';
                 $users->user_status=2;
                 $users->display_name=$user_name;
-                $users->save();
+            }else{
+                $users->user_pass=time();
+                $users->user_nicename=$nicename;
+                $users->user_email=$nicename.'@'.$wpuri['host'];
+                $users->user_url=YII::app()->request->hostInfo.'/members/'.$nicename.'/';
+                $users->user_registered=time();
+                $users->user_activation_key='';
+                $users->user_status=2;
+                $users->display_name=$user_name;
             }
-            $post->post_author=$users->ID;
-            if(!$post->save()){  //发帖成功
-                Yii::log('E::save_post_error::'.serialize($ar), 'warning', '360doc');
-                return false;
+            if(!$users->save()){  //发帖成功
+                Yii::log('E::save_users_error::'.serialize($users), 'warning', '360doc');
+            }else{
+                $post->post_author=$users->ID;
+                if(!$post->save()){  //发帖成功
+                    Yii::log('E::save_post_error::'.serialize($ar), 'warning', '360doc');
+                    return false;
+                }
             }
         }
         
@@ -211,7 +236,7 @@ class ApiController extends Controller
             if(empty($terms)){
                 $terms=new WpTerms();
                 $terms->name=$ar['category'];
-                $terms->slug=Tools::Pinyin($ar['category']);
+                $terms->slug=str_replace(array('-', '+'), '_',urlencode($ar['category']));
                 $terms->term_group=0;
                 if(!$terms->save()){
                     Yii::log('E::save_terms_error::'.serialize($postmeta), 'warning', '360doc');
@@ -236,16 +261,24 @@ class ApiController extends Controller
                         $termTaxonomy->count++;
                     }
                     if($termTaxonomy->save()){
-                        $termRelationships=new WpTermRelationships();
-                        $termRelationships->object_id=$post->ID;
-                        $termRelationships->term_taxonomy_id=$termTaxonomy->term_taxonomy_id;
-                        $termRelationships->term_order=0;
+                        $termRelationships=WpTermRelationships::model()->find(
+                            'object_id=:object_id and term_taxonomy_id=:term_taxonomy_id',
+                            array(':object_id'=>$post->ID, ':term_taxonomy_id'=>$termTaxonomy->term_taxonomy_id)
+                        );
+                        if(empty($termRelationships)){
+                            $termRelationships=new WpTermRelationships();
+                            $termRelationships->object_id=$post->ID;
+                            $termRelationships->term_taxonomy_id=$termTaxonomy->term_taxonomy_id;
+                            $termRelationships->term_order=0;
+                        }else{
+                            $termRelationships->term_taxonomy_id=$termTaxonomy->term_taxonomy_id;
+                        }
                         if(!$termRelationships->save()){
                             Yii::log('E::save_termRelationships_error::'.serialize($termRelationships), 'warning', '360doc');
                             return false;
                         }
                     }else{
-                        Yii::log('E::save_termTaxonomy_error::'.serialize($termRelationships), 'warning', '360doc');
+                        Yii::log('E::save_termTaxonomy_error::'.serialize($termTaxonomy), 'warning', '360doc');
                     }
                 }
             }
