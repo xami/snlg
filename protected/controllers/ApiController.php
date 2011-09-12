@@ -126,6 +126,8 @@ class ApiController extends Controller
 //
 //    }
 
+    
+    
     public function getWp(){
         if(empty($this->_ar) || !is_array($this->_ar)){
             return false;
@@ -151,7 +153,7 @@ class ApiController extends Controller
             $post->post_author=1;
             $post->post_date=$date;
             $post->post_date_gmt=$date;
-            $post->post_content=$ar['body'];
+            $post->post_content=Tools::FContent($ar['body']);
             $post->post_title=$ar['title'];
             $post->post_excerpt=$ar['src'];
             $post->post_status='publish';
