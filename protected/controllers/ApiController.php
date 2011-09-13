@@ -34,6 +34,10 @@ class ApiController extends Controller
         }
     }
 
+    public function getImg($src){
+        $o = Tools::OZCurl($src, 600, false);
+    }
+
     public function getSid(){
         return $this->_sid;
     }

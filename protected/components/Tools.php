@@ -104,7 +104,7 @@ class Tools
         self::cutContent($html, '');
     }
 
-    public function FContent($in){
+    public static function FContent($in){
         if(empty($in)){
             return '';
         }
@@ -116,10 +116,10 @@ class Tools
         return $out;
     }
 
-    public function mk_href($matches)
+    public static function mk_href($matches)
 	{
         pd($matches);
-		if(substr($matches[3],0,7)!=='http://' && substr($matches[3],0,7)!=='https://'){
+		if(substr($matches[3],0,7)!=='http://'){
 			return $matches[0];
 		}
 		$t=strip_tags($matches[5]);
@@ -129,7 +129,7 @@ class Tools
 
 	}
 
-    public function mk_img($matches)
+    public static function mk_img($matches)
 	{
         pd($matches);
 		if($matches[3]=='(原图)'){
