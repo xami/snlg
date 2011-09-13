@@ -1,5 +1,5 @@
 .idea
-/assets/*
+/assets/*/
 /protected/runtime/cache/*
 /protected/runtime/application.log
 /protected/sitemap/*
