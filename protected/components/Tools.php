@@ -110,7 +110,7 @@ class Tools
         }
         $in = '<img id=idIconEdit border=0 src="http://image.360doc.com/DownloadImg/24/10000_1.gif"/>xx</img>';
         /**/
-        $in=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>]*?>)(([^<^\/]*?)(<\/img>?)|)/isx',array('self','mk_img'),$in);
+        $in=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>]*?>)([^<^\/]*?)(<\/img>?)/isx',array('self','mk_img'),$in);
         /**/
         $out=preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$in);
         return $out;
@@ -132,37 +132,8 @@ class Tools
     public static function mk_img($matches)
 	{
         pd($matches);
-		if($matches[3]=='(原图)'){
-			$S=File::model()->find('`src` LIKE :src AND aid=:aid', array(':src'=>$matches[1], ':aid'=>self::$_aid));
-			if(!empty($S)){
-				$dir=Yii::getPathOfAlias('application.data.'.self::$type.
-								'.'.$S->article->cid.
-								'.'.$S->article->tid.
-								'.'.$S->article->aid.
-								'.img');
-				$img_s=self::mkFileApiLink($dir.DIRECTORY_SEPARATOR.$S->name.'.'.$S->type, $S->type, 510, 350);
-			}else{
-				$img_s=self::mkImageApiLink($matches[1], '', self::$_aid, self::$_pos);
-			}
-
-			$B=File::model()->find('`src` LIKE :src AND aid=:aid', array(':src'=>$matches[2], ':aid'=>self::$_aid));
-			if(!empty($B)){
-				$dir=Yii::getPathOfAlias('application.data.'.self::$type.
-								'.'.$B->article->cid.
-								'.'.$B->article->tid.
-								'.'.$B->article->aid.
-								'.img');
-				$img_b=self::mkFileApiLink($dir.DIRECTORY_SEPARATOR.$B->name.'.'.$B->type, $B->type, 600, 400);
-			}else{
-				$img_b=self::mkImageApiLink($matches[2], $matches[1], self::$_aid, self::$_pos);
-			}
-
-
-//			$from='page='.self::getPagination()->currentPage.'&aid='.self::$_aid.'&src=';
-//			$img_s='/index.php/f/?_='.rawurlencode(MCrypy::encrypt($from.$matches[1], Yii::app()->params['mcpass'], 128)).$ext1;
-//			$img_b='/index.php/f/?_='.rawurlencode(MCrypy::encrypt($from.$matches[2].'&fsrc='.$matches[1], Yii::app()->params['mcpass'], 128)).$ext2;
-
-			return '<a class="oz" rel="www.orzero.com" href="'.$img_b.'"><img src="'.$img_s.'"/></a><a target="_blank" href="'.$img_b.'">(原图)</a>';
+		if($matches[5]=='/>'){
+			return $matches[1].
 		}else{
 			return $matches[0];
 		}
