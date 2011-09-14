@@ -34,8 +34,56 @@ class ApiController extends Controller
         }
     }
 
-    public function getImg($src){
-        $o = Tools::OZCurl($src, 600, false);
+    public function actionImg($src){
+        if(empty($src)){
+            return '';
+        }
+
+        $op=strrpos($src,'.');
+        $file_type=substr($src, $op);
+        if(preg_match('/^[\.\w]{4,5}$/i', $file_type)){
+            $file_type=strtolower($file_type);
+        }else{
+            $file_type='';
+        }
+
+        $k=md5($src);
+        $sub_path='';
+        for($i=0;$i<8;$i++){
+            if($i==7){
+                $sub_path.=substr($k,$i*4,4);
+            }else{
+                $sub_path.=substr($k,$i*4,4).DIRECTORY_SEPARATOR;
+            }
+        }
+
+        $root=DIRECTORY_SEPARATOR.'static'.DIRECTORY_SEPARATOR.'img'.DIRECTORY_SEPARATOR;
+        $file=$root.$sub_path.$file_type;
+
+        $save_path=Yii::app()->basePath.DIRECTORY_SEPARATOR.$file;
+        if(!is_file($save_path)){
+            $o = Tools::OZCurl($src, 1800, false);
+            if($o['Info']['http_code']=='200'&&preg_match('/^image\/[\.\w\d]+$/i', $o['Info']['content_type'])){
+                if(mkdir(dirname($save_path), '0755', true)){
+                    if(file_put_contents($save_path, $o['Result'])){
+//                        echo $o['Result'];
+                    }
+                }
+            }
+        }else{
+//            echo file_get_contents($save_path);
+        }
+        $url_link=str_replace('\\','/','http://'.Yii::app()->params['img_host'].'/'.$sub_path.$file_type);
+        header('Location: '.$url_link);
+//        pd($o);
+    }
+
+    public function actionHref($to){
+        if(empty($to)){
+            return 'http://'.Yii::app()->params['img_host'];
+        }
+
+        header('Location: '.base64_decode($to));
     }
 
     public function getSid(){
@@ -47,6 +95,8 @@ class ApiController extends Controller
             $this->_src=$src;
         }
     }
+
+    
 
     public function getSrc(){
         if(!empty($this->_src)){

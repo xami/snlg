@@ -92,6 +92,8 @@ return array(
 	// using Yii::app()->params['paramName']
 	'params'=>array(
 		// this is used in contact page
+        'host'=>'www.snlg.info',
+        'img_host'=>'img.snlg.info',
 		'adminEmail'=>'webmaster@example.com',
 	),
 );

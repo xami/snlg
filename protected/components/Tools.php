@@ -108,36 +108,114 @@ class Tools
         if(empty($in)){
             return '';
         }
-        $in = '<img id=idIconEdit border=0 src="http://image.360doc.com/DownloadImg/24/10000_1.gif"/>xx</img>';
+        //截断大于500字符的文章，截断标识符 '<br>', '<br />', '</p>', '</div>', '</span>'
+        $k=array('<br>', '<br />', '<br/>', '</p>', '</div>', '</span>');
+
+        $i=1;
+        echo "\r\n".$in."\r\n";
+        
+        $h='';
+        $f='';
+        do{
+            $m=0;
+            foreach($k as $v){
+                if(strlen($h)<2000){
+                    if(empty($f)){
+                        if(stristr($in, $v)==false){
+                            continue;
+                        }
+                        $h=stristr($in, $v, true);
+                        $f=stristr($in, $v);
+
+                        $m=strlen($h);
+                    }else{
+                        if(stristr($f, $v)==false){
+                            continue;
+                        }
+                        $h.=stristr($f, $v, true);
+                        $f=stristr($f, $v);
+
+                        $m=min(strlen($h), $m);
+                    }
+                }else{
+                    break;
+                }
+
+                pr($h);pr('////////////////////////////<'.$i++.'>////////////////////////////');echo "\r\n";
+                echo ('////////////////////////////'.$i++.'|'.$v.'|'.$m.'|'.strlen($h).'////////////////////////////')."\r\n";
+//                pr($f);pr('////////////////////////////<'.$i++.'>////////////////////////////');
+            }
+        }while(strlen($h)<2000);
+
+        echo ('////////////////////////////'.$i++.'|'.strlen($in).'////////////////////////////')."\r\n";
+        echo ('////////////////////////////'.$i++.'|'.strlen($h).'////////////////////////////')."\r\n";
+        pd('////////////////////////////'.$i++.'|'.strlen($f).'////////////////////////////')."\r\n";
+
         /**/
-        $in=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>]*?>)([^<^\/]*?)(<\/img>?)/isx',array('self','mk_img'),$in);
-        /**/
-        $out=preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$in);
-        return $out;
+        $out=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>]*?>)/isx',array('self','mk_img'),$in);
+        /*
+        $out=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)([^<^\/]*?)(<\/img>?)/isx',array('self','mk_img'),$in);
+        */
+        return preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$out);
     }
 
     public static function mk_href($matches)
 	{
-        pd($matches);
+        pr($matches);
 		if(substr($matches[3],0,7)!=='http://'){
 			return $matches[0];
 		}
-		$t=strip_tags($matches[5]);
-		if(strlen($t)>128){
-			$t=mb_substr($t, 0, 128);
-		}
-
+		return $matches[1].$matches[2].'http://'.Yii::app()->params['host'].'/api/href?to='.base64_encode($matches[3]).$matches[4].$matches[5].$matches[6].$matches[7];
 	}
 
     public static function mk_img($matches)
 	{
-        pd($matches);
-		if($matches[5]=='/>'){
-			return $matches[1].
-		}else{
-			return $matches[0];
-		}
+//        pr($matches);
+        return $matches[1].$matches[2].'http://'.Yii::app()->params['host'].'/api/img?src='.urlencode($matches[3]).$matches[4].$matches[5].$matches[6].$matches[7];
 	}
+
+    public static function subString_UTF8($str, $start, $lenth)
+    {
+        $len = strlen($str);
+        $r = array();
+        $n = 0;
+        $m = 0;
+        for($i = 0; $i < $lenth; $i++) {
+            $x = substr($str, $i, 1);
+            $a  = base_convert(ord($x), 10, 2);
+            $a = substr('00000000'.$a, -8);
+            if ($n < $start){
+                if (substr($a, 0, 1) == 0) {
+                }elseif (substr($a, 0, 3) == 110) {
+                    $i += 1;
+                }elseif (substr($a, 0, 4) == 1110) {
+                    $i += 2;
+                }
+                $n++;
+            }else{
+                if (substr($a, 0, 1) == 0) {
+                    $r[ ] = substr($str, $i, 1);
+                }elseif (substr($a, 0, 3) == 110) {
+                    $r[ ] = substr($str, $i, 2);
+                    $i += 1;
+                }elseif (substr($a, 0, 4) == 1110) {
+                    $r[ ] = substr($str, $i, 3);
+                    $i += 2;
+                }else{
+                    $r[ ] = '';
+                }
+                if (++$m >= $lenth){
+                    break;
+                }
+            }
+        }
+        //return $r;
+        $o=join('', $r);
+        if($lenth<$len){
+        	$o .= '…';
+        }
+        return $o;
+    } // End subString_UTF8;
 
     public static function Pinyin($_String, $_Code='gb2312')
     {
