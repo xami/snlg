@@ -14,6 +14,11 @@ class ApiController extends Controller
     public $_html;
     public $_ar;
 
+    public function actionTest(){
+        $t='asdfasdxx';
+        $b=explode('bk', $t);
+    }
+
     public function actionWp()
     {
         $this->sid=Yii::app()->request->getParam('sid', 0);
@@ -21,8 +26,14 @@ class ApiController extends Controller
             if(!empty($this->html)){
                 if(!empty($this->ar)){
                     echo json_encode(array('return'=>$this->wp));
+                }else{
+                    echo json_encode(array('return'=>false,'m'=>'ar'));
                 }
+            }else{
+                echo json_encode(array('return'=>false,'m'=>'html'));
             }
+        }else{
+            echo json_encode(array('return'=>false,'m'=>'src'));
         }
     }
 

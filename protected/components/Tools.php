@@ -108,51 +108,11 @@ class Tools
         if(empty($in)){
             return '';
         }
-        //截断大于500字符的文章，截断标识符 '<br>', '<br />', '</p>', '</div>', '</span>'
-        $k=array('<br>', '<br />', '<br/>', '</p>', '</div>', '</span>');
-
-        $i=1;
-        echo "\r\n".$in."\r\n";
-        
-
-        $m=array();
-        $i=1;
-        foreach($k as $v){
-            $h='';
-            $f='';
-            do{
-                if(empty($f)){
-                    if(stristr($in, $v)==false){
-                        continue;
-                    }
-                    $h=stristr($in, $v, true);
-                    $f=stristr($in, $v);
-
-                    $m=strlen($h);
-                }else{
-                    if(stristr($f, $v)==false){
-                        continue;
-                    }
-                    $h.=stristr($f, $v, true);
-                    $f=stristr($f, $v);
-
-                    $m=min(strlen)($h), $m);
-                }
-                
-                pr($h);pr('////////////////////////////<'.$i++.'>////////////////////////////');echo "\r\n";
-                echo ('////////////////////////////'.$i++.'|'.$v.'|'.$m.'|'.strlen($h).'////////////////////////////')."\r\n";
-//                pr($f);pr('////////////////////////////<'.$i++.'>////////////////////////////');
-            }while(strlen($h)<2000);
-
-            $m[$i]=strlen($h);
-            
-        }
-
-
-        echo ('////////////////////////////'.$i++.'|'.strlen($in).'////////////////////////////')."\r\n";
-        echo ('////////////////////////////'.$i++.'|'.strlen($h).'////////////////////////////')."\r\n";
-        pd('////////////////////////////'.$i++.'|'.strlen($f).'////////////////////////////')."\r\n";
-
+        //过滤flash
+        $in=preg_replace('/<(object|style|script).*?<\/(?(1)\\1)>/isx', '', $in);
+//        pr($in);
+        $in=self::insert_more_mark($in);
+//        pd($in);
         /**/
         $out=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>]*?>)/isx',array('self','mk_img'),$in);
         /*
@@ -161,9 +121,103 @@ class Tools
         return preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$out);
     }
 
+    public static function insert_more_mark($in){
+        /*
+        //截断大于500字符的文章，截断标识符 '<br>', '<br />', '</p>', '</div>', '</span>'
+
+        $i=1;
+        $m=array();
+        foreach($k as $v){
+            $h='';
+            $f='';
+            $c=0;
+            $t=false;
+            do{
+                if(empty($f)){
+                    if(($t=stristr($in, $v))==false){
+                        break;
+                    }
+                    $h=stristr($in, $v, true);
+                    $f=$t;
+                    $c=strlen($h);
+                    if($c==0){
+                        break;
+                    }
+                }else{
+                    if(($t=stristr($f, $v))==false){
+                        break;
+                    }
+                    $h.=stristr($f, $v, true);
+                    $f=$t;
+                    if($c==strlen($h)){
+                        break;
+                    }
+                }
+            }while(strlen($h)<2000);
+            $m[$i++]=strlen($h);
+        }
+        */
+        if(empty($in)){
+            return '';
+        }
+        //定义截断区间
+        $start=1000;
+        $cut=1500;
+        $end=3000;
+        
+        $k=array('<br>', '<BR>', '<br />', '<BR />', '<br/>', '<BR/>', '</p>', '</P>', '</div>', '</DIV>', '</span>', "</SPAN>");
+        
+        $t=array(); //存放分割后的文章
+        $m=array(); //存放记录
+        $j=0;
+        foreach($k as $v){
+            $t=explode($v, $in);
+            $l=0;
+
+            if(($c=count($t))>1){
+                for($i=0;$i<$c;$i++){
+                    $l+=strlen($t[$i]);
+                    if($l>$start&&isset($t[$i+1])){
+                        $t[$i+1]='<!--more-->'.$t[$i+1];
+                        if($l+strlen($t[$i+1])<$cut){
+                            return implode($v, $t);
+                        }else{
+                            $m[$j]=array();
+                            $m[$j]['t']=$t;
+                            $m[$j]['l']=$l;
+                            $m[$j]['v']=$v;
+                            break;
+                        }
+                    }
+                }
+            }
+            $j++;
+        }
+
+        $tt=$end;
+        $the_k='';
+        foreach($m as $k => $v){
+            if(empty($tt)){
+                $tt=$v['l'];
+            }else{
+                if($v['l']<$tt){
+                    $the_k=$k;
+                }
+            }
+        }
+
+//        pr($m);
+//        pd($the_k);
+        if(empty($the_k)){
+            return $in;
+        }else{
+            return implode($m[$the_k]['v'], $m[$the_k]['t']);
+        }
+    }
+
     public static function mk_href($matches)
 	{
-        pr($matches);
+//        pd($matches);
 		if(substr($matches[3],0,7)!=='http://'){
 			return $matches[0];
 		}
@@ -172,7 +226,7 @@ class Tools
 
     public static function mk_img($matches)
 	{
-//        pr($matches);
+//        pd($matches);
         return $matches[1].$matches[2].'http://'.Yii::app()->params['host'].'/api/img?src='.urlencode($matches[3]).$matches[4].$matches[5].$matches[6].$matches[7];
 	}
 
