@@ -114,38 +114,40 @@ class Tools
         $i=1;
         echo "\r\n".$in."\r\n";
         
-        $h='';
-        $f='';
-        do{
-            $m=0;
-            foreach($k as $v){
-                if(strlen($h)<2000){
-                    if(empty($f)){
-                        if(stristr($in, $v)==false){
-                            continue;
-                        }
-                        $h=stristr($in, $v, true);
-                        $f=stristr($in, $v);
 
-                        $m=strlen($h);
-                    }else{
-                        if(stristr($f, $v)==false){
-                            continue;
-                        }
-                        $h.=stristr($f, $v, true);
-                        $f=stristr($f, $v);
-
-                        $m=min(strlen($h), $m);
+        $m=array();
+        $i=1;
+        foreach($k as $v){
+            $h='';
+            $f='';
+            do{
+                if(empty($f)){
+                    if(stristr($in, $v)==false){
+                        continue;
                     }
-                }else{
-                    break;
-                }
+                    $h=stristr($in, $v, true);
+                    $f=stristr($in, $v);
 
+                    $m=strlen($h);
+                }else{
+                    if(stristr($f, $v)==false){
+                        continue;
+                    }
+                    $h.=stristr($f, $v, true);
+                    $f=stristr($f, $v);
+
+                    $m=min(strlen)($h), $m);
+                }
+                
                 pr($h);pr('////////////////////////////<'.$i++.'>////////////////////////////');echo "\r\n";
                 echo ('////////////////////////////'.$i++.'|'.$v.'|'.$m.'|'.strlen($h).'////////////////////////////')."\r\n";
 //                pr($f);pr('////////////////////////////<'.$i++.'>////////////////////////////');
-            }
-        }while(strlen($h)<2000);
+            }while(strlen($h)<2000);
+
+            $m[$i]=strlen($h);
+            
+        }
+
 
         echo ('////////////////////////////'.$i++.'|'.strlen($in).'////////////////////////////')."\r\n";
         echo ('////////////////////////////'.$i++.'|'.strlen($h).'////////////////////////////')."\r\n";
