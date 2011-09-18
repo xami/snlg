@@ -300,7 +300,7 @@ class ApiController extends Controller
             $post->post_status='publish';
             $post->comment_status='open';
             $post->ping_status='open';
-            $post->post_name=urlencode($this->htmldecode(strtr($ar['title'], array(' '=>'', ' '=>'', '？'=>'', '<'=>'', '>'=>'', '+'=>'', '%'=>'', '&'=>''))));
+            $post->post_name=urlencode($this->htmldecode(strtr($ar['title'], array(' '=>'', ' '=>'', '-'=>'', '？'=>'', '<'=>'', '>'=>'', '+'=>'', '%'=>'', '&'=>''))));
             $post->to_ping='';
             $post->pinged='';
             $post->post_modified=$date;
