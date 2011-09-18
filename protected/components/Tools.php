@@ -111,14 +111,17 @@ class Tools
         //过滤flash
         $in=preg_replace('/<(object|style|script).*?<\/(?(1)\\1)>/isx', '', $in);
 //        pr($in);
-        $in=self::insert_more_mark($in);
+//        $in=self::insert_more_mark($in);
 //        pd($in);
         /**/
         $out=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>]*?>)/isx',array('self','mk_img'),$in);
         /*
         $out=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)([^<^\/]*?)(<\/img>?)/isx',array('self','mk_img'),$in);
         */
-        return preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$out);
+        $out = preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$out);
+
+        $out=self::subString_UTF8(strip_tags($out), 0, 500).'<!--more-->'.$out;
+        return $out;
     }
 
     public static function insert_more_mark($in){

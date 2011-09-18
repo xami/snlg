@@ -25,15 +25,15 @@ class ApiController extends Controller
         if(!empty($this->src)){
             if(!empty($this->html)){
                 if(!empty($this->ar)){
-                    echo json_encode(array('return'=>$this->wp));
+                    echo json_encode(array('status'=>$this->wp, 'm'=>$this->src));
                 }else{
-                    echo json_encode(array('return'=>false,'m'=>'ar'));
+                    echo json_encode(array('status'=>false,'m'=>'empty::ar'));
                 }
             }else{
-                echo json_encode(array('return'=>false,'m'=>'html'));
+                echo json_encode(array('status'=>false,'m'=>'empty::html'));
             }
         }else{
-            echo json_encode(array('return'=>false,'m'=>'src'));
+            echo json_encode(array('status'=>false,'m'=>'empty::src'));
         }
     }
 
@@ -68,26 +68,63 @@ class ApiController extends Controller
             }
         }
 
-        $root=DIRECTORY_SEPARATOR.'static'.DIRECTORY_SEPARATOR.'img'.DIRECTORY_SEPARATOR;
-        $file=$root.$sub_path.$file_type;
+        $root='static'.DIRECTORY_SEPARATOR.'img'.DIRECTORY_SEPARATOR;
+        $file=$root.$sub_path.$file_type; 
 
         $save_path=Yii::app()->basePath.DIRECTORY_SEPARATOR.$file;
+		//$o = Tools::OZCurl($src, 1800, false);	
+		//pr(dirname($save_path).'/');
+		//pr($this->mkdirs(dirname($save_path).'/'));
+		//pr($save_path);
+		//pr(file_put_contents($save_path, $o['Result']));		
+		//pd();
         if(!is_file($save_path)){
-            $o = Tools::OZCurl($src, 1800, false);
+            $o = Tools::OZCurl($src, 1800, false);			
             if($o['Info']['http_code']=='200'&&preg_match('/^image\/[\.\w\d]+$/i', $o['Info']['content_type'])){
-                if(mkdir(dirname($save_path), '0755', true)){
+                if($this->mkdirs(dirname($save_path))){					
                     if(file_put_contents($save_path, $o['Result'])){
 //                        echo $o['Result'];
+						$url_link=str_replace('\\','/','http://'.Yii::app()->params['img_host'].'/'.$sub_path.$file_type);
                     }
                 }
-            }
+            }else{
+				$url_link=$src;
+			}
+			
         }else{
-//            echo file_get_contents($save_path);
+			$url_link=str_replace('\\','/','http://'.Yii::app()->params['img_host'].'/'.$sub_path.$file_type);
+//            echo file_get_contents($save_path);			
         }
-        $url_link=str_replace('\\','/','http://'.Yii::app()->params['img_host'].'/'.$sub_path.$file_type);
+        
         header('Location: '.$url_link);
 //        pd($o);
     }
+
+	function mkdirs($path, $mode = 0777) //creates directory tree recursively
+	{
+		$dirs = explode('/',$path);
+		$pos = strrpos($path, ".");
+		if ($pos === false) { // note: three equal signs
+			// not found, means path ends in a dir not file
+			$subamount=0;
+		}
+		else {
+			$subamount=1;
+		}
+
+		for ($c=0;$c < count($dirs) - $subamount; $c++) {
+			$thispath="";
+			for ($cc=0; $cc <= $c; $cc++) {
+				$thispath.=$dirs[$cc].'/';
+			}
+			if (!file_exists($thispath)) {
+				//print "$thispath<br>";
+				mkdir($thispath,$mode);
+			}
+		}
+		
+		return true;
+	}
 
     public function actionHref($to){
         if(empty($to)){
@@ -191,7 +228,46 @@ class ApiController extends Controller
 //
 //    }
 
-    
+    function htmldecode($str)
+    {
+        if(empty($str)) return;
+        if($str=="") return $str;
+        $str=str_replace("&",chr(34),$str);
+        $str=str_replace(">",">",$str);
+        $str=str_replace("<","<",$str);
+        $str=str_replace("&","&",$str);
+        $str=str_replace(" ",chr(32),$str);
+        $str=str_replace(" ",chr(9),$str);
+        $str=str_replace("'",chr(39),$str);
+        $str=str_replace("<br />",chr(13),$str);
+        $str=str_replace("''","'",$str);
+        $str=str_replace("select","select",$str);
+        $str=str_replace("join","join",$str);
+        $str=str_replace("union","union",$str);
+        $str=str_replace("where","where",$str);
+        $str=str_replace("insert","insert",$str);
+        $str=str_replace("delete","delete",$str);
+        $str=str_replace("update","update",$str);
+        $str=str_replace("like","like",$str);
+        $str=str_replace("drop","drop",$str);
+        $str=str_replace("create","create",$str);
+        $str=str_replace("modify","modify",$str);
+        $str=str_replace("rename","rename",$str);
+        $str=str_replace("alter","alter",$str);
+        $str=str_replace("cas","cast",$str);
+        $farr = array(
+        "/\s+/" , //过滤多余的空白
+        "/<(\/?)(img|script|i?frame|style|html|body|title|link|meta|\?|\%)([^>]*?)>/isU" , //过滤 <script 防止引入恶意内容或恶意代码,如果不需要插入flash等,还可以加入<object的过滤
+        "/(<[^>]*)on[a-zA-Z]+\s*=([^>]*>)/isU" , //过滤javascript的on事件
+        );
+        $tarr = array(
+        " " ,
+        "<\\1\\2\\3>" , //如果要直接清除不安全的标签，这里可以留空
+        "\\1\\2" ,
+        );
+        $str = preg_replace ( $farr , $tarr , $str );
+        return $str;
+    }
     
     public function getWp(){
         if(empty($this->_ar) || !is_array($this->_ar)){
@@ -224,7 +300,7 @@ class ApiController extends Controller
             $post->post_status='publish';
             $post->comment_status='open';
             $post->ping_status='open';
-            $post->post_name=str_replace(array('-', '+'), '_',urlencode( $ar['title']));
+            $post->post_name=urlencode($this->htmldecode(strtr($ar['title'], array(' '=>'', ' '=>'', '？'=>'', '<'=>'', '>'=>'', '+'=>'', '%'=>'', '&'=>''))));
             $post->to_ping='';
             $post->pinged='';
             $post->post_modified=$date;
