@@ -31,7 +31,7 @@ try { // <<<<-------------- try
 	$sid=intval($r[0]['sid'])+1;
 	
 	$get=json_decode(file_get_contents('http://www.xxer.info/tools/index.php/api/wp?sid='.$sid));
-	//print_r($get);die;
+	//echo $sid;print_r(file_get_contents('http://www.xxer.info/tools/index.php/api/wp?sid='.$sid));die;
 	
 	if(isset($get->status)&&isset($get->m)){
 		$mysql->query(
@@ -47,7 +47,7 @@ VALUES (
 NULL , ".daddslashes($sid).", '".daddslashes($get->status)."', '".daddslashes($get->m)."', '',
 CURRENT_TIMESTAMP
 );");
-		echo $get->m.' post sid::'.$sid;
+		echo $get->m.' post sid::'.$sid."<br />\r\n";
 		if($get->status==true){
 			return true;
 		}
@@ -65,7 +65,7 @@ VALUES (
 NULL , ".daddslashes($sid).", '', '', '".daddslashes(serialize($get))."',
 CURRENT_TIMESTAMP
 );");
-		echo 'post sid::'.$sid.' error';		
+		echo 'post sid::'.$sid.' error'."<br />\r\n";		
 	}
 	
 	return false;
@@ -85,21 +85,22 @@ VALUES (
 NULL , ".daddslashes($sid).", '', '', '".daddslashes(serialize(ErrorManager::getInstance()->getErrors()))."',
 CURRENT_TIMESTAMP
 );");
-	echo 'post sid::'.$sid.' some error';
+	echo 'post sid::'.$sid.' some error'."<br />\r\n";
 	return false;
 	
 }
 
-
+}
 
 $i=1;
-while ($i <= 5) {
+while ($i <= 10) {
 	if(tdo()){
 		break;
 	}	
 	$i++;
+	sleep(1);
 }
 
-}
+
 
 ?>

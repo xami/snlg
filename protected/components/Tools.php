@@ -118,10 +118,7 @@ class Tools
         /*
         $out=preg_replace_callback('/(<img\s+.*?src=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)([^<^\/]*?)(<\/img>?)/isx',array('self','mk_img'),$in);
         */
-        $out = preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$out);
-
-        $out=self::subString_UTF8(strip_tags($out), 0, 500).'<!--more-->'.$out;
-        return $out;
+        return preg_replace_callback('/(<a\s+.*?href=\s*)([\"\']?)([^\'^\"]*?)((?(2)\\2))([^>^\/]*?>)(.*?)(<\/a>)/isx',array('self','mk_href'),$out);
     }
 
     public static function insert_more_mark($in){
@@ -164,9 +161,9 @@ class Tools
             return '';
         }
         //定义截断区间
-        $start=1000;
-        $cut=1500;
-        $end=3000;
+        $start=2000;
+        $cut=2500;
+        $end=5000; 
         
         $k=array('<br>', '<BR>', '<br />', '<BR />', '<br/>', '<BR/>', '</p>', '</P>', '</div>', '</DIV>', '</span>', "</SPAN>");
         

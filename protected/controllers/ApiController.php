@@ -296,12 +296,12 @@ class ApiController extends Controller
             $post->post_date_gmt=$date;
             $post->post_content=Tools::FContent($ar['body']);
             $post->post_title=$ar['title'];
-            $post->post_excerpt=$ar['src'];
+            $post->post_excerpt=Tools::subString_UTF8(strip_tags($post->post_content), 0, 500);
             $post->post_status='publish';
             $post->comment_status='open';
             $post->ping_status='open';
             $post->post_name=urlencode($this->htmldecode(strtr($ar['title'], array(' '=>'', ' '=>'', '-'=>'', '？'=>'', '<'=>'', '>'=>'', '+'=>'', '%'=>'', '&'=>''))));
-            $post->to_ping='';
+            $post->to_ping=$ar['src'];
             $post->pinged='';
             $post->post_modified=$date;
             $post->post_modified_gmt=$date;
