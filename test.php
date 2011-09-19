@@ -20,7 +20,7 @@ function tdo(){
 try { // <<<<-------------- try
 
 	$mysql = new Mysql();
-	$mysql->connect("xxer2info2wp.db.8339784.hostedresource.com", "xxer2info2wp", "xxer2info2wp", "xxer@Ftp28"); // change this line here
+	$mysql->connect("", "xxer2info2wp", "xxer2info2wp", "xxer@Ftp28"); // change this line here
 
 	$query = "select sid from `crontab` ORDER BY `sid` DESC limit 1"; // and table name here
 	
